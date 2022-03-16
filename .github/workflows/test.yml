@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-18.04 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: |
+          echo "repositories:" >./vcs.repos
+          echo "  navigation:" >>./vcs.repos
+          echo "    type: git" >>./vcs.repos
+          echo "    url: https://github.com/smilerobotics/navigation.git" >>./vcs.repos
+          echo "    version: noetic-devel" >>./vcs.repos
+          echo "  teb_local_planner:" >>./vcs.repos
+          echo "    type: git" >>./vcs.repos
+          echo "    url: https://github.com/smilerobotics/teb_local_planner" >>./vcs.repos
+          echo "    version: melodic-devel" >>./vcs.repos
+        shell: bash
+      - uses: smilerobotics/actions-vcs-import@v1
+        with:
+          vcs_setting_file: ./vcs.repos
+          target_dir: ./src
+      - run: |
+          test -e src/navigation
+          test -e src/teb_local_planner
+        shell: bash

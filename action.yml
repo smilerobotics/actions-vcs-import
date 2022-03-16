@@ -1,0 +1,35 @@
+name: 'vcs-import'
+description: 'Run vcs import'
+inputs:
+  vcs_setting_file:
+    required: true
+    description: 'Path of the file for vcs import.'
+  target_dir:
+    required: true
+    description: 'Path of the target directory.'
+runs:
+  using: "composite"
+  steps:
+    - id: python_version
+      run: |
+        echo "::set-output name=version::$(which python3 >/dev/null && echo 3 || echo 2)"
+      shell: bash
+    - if: ${{ steps.python_version.outputs.version == '3' }}
+      name: install
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip
+        sudo pip3 install vcstool
+      shell: bash
+    - if: ${{ steps.python_version.outputs.version == '2' }}
+      name: install
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python python-pip
+        sudo pip install vcstool
+      shell: bash
+    - name: import
+      run: |
+        mkdir -p ${{ inputs.target_dir }}
+        vcs import ${{ inputs.target_dir }} < ${{ inputs.vcs_setting_file }}
+      shell: bash
